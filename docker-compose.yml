@@ -3,7 +3,9 @@ version: '3.8'
 services:
   # --- Веб-приложение: в обеих сетях ---
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: flask_web
     ports:
       - "5000:5000"
