@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # --- Веб-приложение: в обеих сетях ---
   web:
     build: .
     container_name: flask_web
@@ -12,12 +13,16 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - FLASK_DEBUG=1                       # ← Включаем debug-режим
+      - FLASK_DEBUG=1
     volumes:
-      - ./:/app                             # ← BIND MOUNT: папка с кодом
+      - ./:/app
+    networks:
+      - frontend       # ← доступен извне
+      - backend        # ← может общаться с БД
     depends_on:
       - db
 
+  # --- База данных: только backend ---
   db:
     image: postgres:15
     container_name: postgres_db
@@ -26,18 +31,31 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - pgdata:/var/lib/postgresql/data     # ← VOLUME: именованный том
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend        # ← только в приватной сети!
+    # ❌ НЕТ секции "ports" — снаружи недоступна!
 
+  # --- pgAdmin: тоже backend ---
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     ports:
-      - "8080:80"
+      - "8080:80"      # ← оставим доступ, чтобы вы могли зайти в браузере
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    networks:
+      - backend
     depends_on:
       - db
 
+# --- Объявление пользовательских сетей ---
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
 volumes:
-  pgdata:                                   # ← Объявление именованного тома
+  pgdata:
