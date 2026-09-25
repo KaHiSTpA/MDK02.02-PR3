@@ -12,6 +12,9 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - FLASK_DEBUG=1                       # ← Включаем debug-режим
+    volumes:
+      - ./:/app                             # ← BIND MOUNT: папка с кодом
     depends_on:
       - db
 
@@ -23,7 +26,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data     # ← VOLUME: именованный том
 
   pgadmin:
     image: dpage/pgadmin4
@@ -37,4 +40,4 @@ services:
       - db
 
 volumes:
-  pgdata:
+  pgdata:                                   # ← Объявление именованного тома

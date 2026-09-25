@@ -43,7 +43,7 @@ def hello():
             # Считаем, сколько записей всего
             count = session.query(Visit).count()
             session.close()
-            return f"Hello, Docker! Записей в базе: {count}"
+            return f"Привет из bind mount! Записей: {count}"
         except Exception as e:
             print(f"БД пока недоступна (попытка {attempt+1}/10): {e}")
             time.sleep(2)
@@ -52,4 +52,5 @@ def hello():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # debug=True включает авто-перезагрузку при изменении кода
+    app.run(host='0.0.0.0', port=5000, debug=True)
