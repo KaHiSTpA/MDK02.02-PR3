@@ -1,30 +1,26 @@
-version: '3.8'
-
 services:
-  # --- Веб-приложение: в обеих сетях ---
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: flask_web
     ports:
       - "5000:5000"
+    env_file:
+      - ${ENV_FILE:-.env}                    # ← Автоматически грузит ВСЕ переменные из .env
     environment:
+      # Эти переменные формируются из того, что уже есть в .env (для app.py)
       - DB_HOST=db
       - DB_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - FLASK_DEBUG=1
     volumes:
       - ./:/app
     networks:
-      - frontend       # ← доступен извне
-      - backend        # ← может общаться с БД
+      - frontend
+      - backend
     depends_on:
       - db
 
-  # --- База данных: только backend ---
   db:
     image: postgres:15
     container_name: postgres_db
@@ -35,15 +31,13 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - backend        # ← только в приватной сети!
-    # ❌ НЕТ секции "ports" — снаружи недоступна!
+      - backend
 
-  # --- pgAdmin: тоже backend ---
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     ports:
-      - "8080:80"      # ← оставим доступ, чтобы вы могли зайти в браузере
+      - "8080:80"
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
@@ -52,7 +46,6 @@ services:
     depends_on:
       - db
 
-# --- Объявление пользовательских сетей ---
 networks:
   frontend:
     driver: bridge
